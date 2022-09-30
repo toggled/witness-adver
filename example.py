@@ -12,13 +12,12 @@ from DNN import CNN
 from lazywitness import * 
 
 
-def computeLWfeatures(filename='cora.edgelist'):
+def computeLWfeatures(G):
 	""" Computes LW persistence pairs / if pre-computed loads&returns them. """
 	if os.path.isfile('cora.pd.pkl'):
 		with open('cora.pd.pkl','rb') as f:
 			PD = pickle.load(f)
 	else:	
-		G = nx.read_edgelist(filename)
 		L = int(len(G.nodes)*0.25) # Take top 25% maximal degree nodes as landmarks
 		landmarks,dist_to_cover = getLandmarksbynumL(G, L = L,heuristic='degree')
 		DSparse,INF = get_sparse_matrix(G,dist_to_cover,landmarks) # Construct sparse LxL matrix
@@ -35,7 +34,7 @@ dataset_name = 'cora'
 G, features, y_train, y_val, y_test, train_mask, val_mask, test_mask = load_data(dataset_name, return_nxgraph=True)
 
 # generate persistence image
-PD = computeLWfeatures() 
+PD = computeLWfeatures(G) 
 
 # toy PD
 #PD_birth = np.random.rand(5,1)
@@ -47,13 +46,16 @@ PI = persistence_image(PD, resolution = [100, 100])
 # deep neural networks on PI
 # we first generate simulated PIs (in one batch)
 # batch size is 16
-PIs_in_batch = np.random.rand(16, 100 ,100) # (B, resolution, resolution)
-PIs_in_batch = PIs_in_batch
+#PIs_in_batch = np.random.rand(1, 100 ,100) # (B, resolution, resolution)
+#PIs_in_batch = PIs_in_batch
+PIs_in_batch = PI
 
-device = 0
-PIs_in_batch = torch.FloatTensor(PIs_in_batch).unsqueeze(dim = 1).to(device)
+device = torch.device("cuda:0") # Train on GPU // fast
+#device = 'cpu' # Train on CPU // slow
+PIs_in_batch = torch.FloatTensor(PIs_in_batch).unsqueeze(dim=0).unsqueeze(dim = 1).to(device)
 
 # CNN model
 dim_out = 64 # pre-defined output dimension
-CNN_model = CNN(dim_out = dim_out)
+CNN_model = CNN(dim_out = dim_out).to(device)
 output = CNN_model(PIs_in_batch) # (B, dim_out)
+print(output)
