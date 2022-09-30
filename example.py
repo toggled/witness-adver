@@ -5,10 +5,12 @@ import numpy as np
 import pandas as pd
 import networkx as nx
 import os,pickle
+from torch_geometric.data import Data
 
 from utils import load_data
 from persistence_image import persistence_image
 from DNN import CNN
+from GCN import GCNTraining
 from lazywitness import * 
 
 
@@ -32,6 +34,10 @@ def computeLWfeatures(G):
 # load dataset
 dataset_name = 'cora'
 G, features, y_train, y_val, y_test, train_mask, val_mask, test_mask = load_data(dataset_name, return_nxgraph=True)
+# prepare graph dataset into pytorch Data() format
+# pyg_data = Data()
+# Train a 2 layer GCN with cross-entropy loss
+# GCNTraining(pyg_data)
 
 # generate persistence image
 PD = computeLWfeatures(G) 
