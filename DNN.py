@@ -2,7 +2,7 @@ import torch
 import torch.nn.functional as F
 import torch.nn as nn
 
-# DNN
+# 2 layers of (Conv,ReLU, MaxPool)
 class CNN(nn.Module):
     def __init__(self, dim_out):
         super(CNN, self).__init__()
@@ -19,6 +19,7 @@ class CNN(nn.Module):
 
     def forward(self, PI):
         feature = self.features(PI)
+        print('feature.size: ', feature.size())
         feature = self.maxpool(feature)
         feature = feature.view(-1, self.dim_out) #B, dim_out
         return feature
